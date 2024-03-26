@@ -440,6 +440,7 @@ bool AnalysisPredictor::Init(
       config_.UseOptimizedModel(false);
     }
   }
+  std::cout << "config.use_xpu_: " << config_.use_xpu_ << std::endl;
 
   if (!PrepareScope(parent_scope)) {
     return false;

@@ -114,7 +114,9 @@ void MultiEncoderXPUKernel(
                                               xpu::QuantType::NOT_QUANT);
   if (enable_int8) {
     for (size_t i = 0; i < quant_types.size(); i++) {
-      set_quant_types[i] = xpu::QuantType::QUANT_INT8;
+      if (quant_types[i] == "enable_int8") {
+        set_quant_types[i] = xpu::QuantType::QUANT_INT8;
+      }
     }
   }
   std::vector<const float*> fc_input_max_data;
@@ -151,9 +153,10 @@ void MultiEncoderXPUKernel(
       fc_bias_data.push_back(nullptr);
     }
   }
-
+  std::cout << "fc_input_max.size():" << std::endl;
   for (size_t i = 0; i < fc_input_max.size(); i++) {
     fc_input_max_data.push_back(fc_input_max[i]->data<float>());
+    // std::cout<<"fc_input_max[i]->data<float>():"<<fc_input_max[i]->data<float>()[0]<<std::endl;
   }
 
   std::vector<const float*> ln_scale_data;

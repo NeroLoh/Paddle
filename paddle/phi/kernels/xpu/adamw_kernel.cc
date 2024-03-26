@@ -75,71 +75,74 @@ void AdamwDenseKernelKL3(const Context& dev_ctx,
                          DenseTensor* master_param_outs) {
   // TODO(houj04):
   // 当KL3稳定以后，并且不需要支持KL1和KL2的时候，拿这里的AdamwDenseKernelKL3替换掉AdamwDenseKernel
-  using MPDType = typename phi::dtype::MPTypeTrait<T>::Type;
-  using XPUType = typename XPUTypeTrait<T>::Type;
+  // using MPDType = typename phi::dtype::MPTypeTrait<T>::Type;
+  // using XPUType = typename XPUTypeTrait<T>::Type;
 
-  const auto grad_type = grad.dtype();
+  // const auto grad_type = grad.dtype();
 
-  VLOG(4) << "use_global_beta_pow:" << use_global_beta_pow;
+  // VLOG(4) << "use_global_beta_pow:" << use_global_beta_pow;
 
-  MPDType coeff_ = static_cast<MPDType>(coeff);
-  MPDType lr_ratio_ = static_cast<MPDType>(lr_ratio);
+  // MPDType coeff_ = static_cast<MPDType>(coeff);
+  // MPDType lr_ratio_ = static_cast<MPDType>(lr_ratio);
 
-  bool skip_update_ = false;
-  if (skip_update.is_initialized()) {
-    PADDLE_ENFORCE_EQ(
-        skip_update->numel(),
-        1,
-        errors::InvalidArgument("Input(SkipUpdate) size must be 1, but get %d",
-                                skip_update->numel()));
-    std::vector<bool> skip_update_vec;
-    phi::TensorToVector(*skip_update, dev_ctx, &skip_update_vec);
-    skip_update_ = skip_update_vec[0];
-  }
+  // bool skip_update_ = false;
+  // if (skip_update.is_initialized()) {
+  //   PADDLE_ENFORCE_EQ(
+  //       skip_update->numel(),
+  //       1,
+  //       errors::InvalidArgument("Input(SkipUpdate) size must be 1, but get
+  //       %d",
+  //                               skip_update->numel()));
+  //   std::vector<bool> skip_update_vec;
+  //   phi::TensorToVector(*skip_update, dev_ctx, &skip_update_vec);
+  //   skip_update_ = skip_update_vec[0];
+  // }
 
-  // skip_update=true, just copy input to output
-  if (skip_update_) {
-    VLOG(4) << "Adamw skip update";
-    phi::Copy(dev_ctx, param, dev_ctx.GetPlace(), false, param_out);
-    phi::Copy(dev_ctx, moment1, dev_ctx.GetPlace(), false, moment1_out);
-    phi::Copy(dev_ctx, moment2, dev_ctx.GetPlace(), false, moment2_out);
-    if (!use_global_beta_pow) {
-      phi::Copy(dev_ctx, beta1_pow, beta1_pow.place(), false, beta1_pow_out);
-      phi::Copy(dev_ctx, beta2_pow, beta2_pow.place(), false, beta2_pow_out);
-    }
-    return;
-  }
+  // // skip_update=true, just copy input to output
+  // if (skip_update_) {
+  //   VLOG(4) << "Adamw skip update";
+  //   phi::Copy(dev_ctx, param, dev_ctx.GetPlace(), false, param_out);
+  //   phi::Copy(dev_ctx, moment1, dev_ctx.GetPlace(), false, moment1_out);
+  //   phi::Copy(dev_ctx, moment2, dev_ctx.GetPlace(), false, moment2_out);
+  //   if (!use_global_beta_pow) {
+  //     phi::Copy(dev_ctx, beta1_pow, beta1_pow.place(), false, beta1_pow_out);
+  //     phi::Copy(dev_ctx, beta2_pow, beta2_pow.place(), false, beta2_pow_out);
+  //   }
+  //   return;
+  // }
 
-  // if with_decay = false, coeff = 0
-  if (!with_decay) {
-    coeff_ = static_cast<MPDType>(0.0);
-  }
+  // // if with_decay = false, coeff = 0
+  // if (!with_decay) {
+  //   coeff_ = static_cast<MPDType>(0.0);
+  // }
 
-  MPDType beta1_ = beta1.to<MPDType>();
-  MPDType beta2_ = beta2.to<MPDType>();
-  MPDType epsilon_ = epsilon.to<MPDType>();
-  VLOG(3) << "beta1_pow.numel() : " << beta1_pow.numel()
-          << "beta2_pow.numel() : " << beta2_pow.numel();
-  VLOG(3) << "param.numel(): " << param.numel();
-  PADDLE_ENFORCE_EQ(
-      beta1_pow_out->numel(),
-      1,
-      errors::InvalidArgument("beta1 pow output size should be 1, but received "
-                              "value is:%d.",
-                              beta1_pow_out->numel()));
+  // MPDType beta1_ = beta1.to<MPDType>();
+  // MPDType beta2_ = beta2.to<MPDType>();
+  // MPDType epsilon_ = epsilon.to<MPDType>();
+  // VLOG(3) << "beta1_pow.numel() : " << beta1_pow.numel()
+  //         << "beta2_pow.numel() : " << beta2_pow.numel();
+  // VLOG(3) << "param.numel(): " << param.numel();
+  // PADDLE_ENFORCE_EQ(
+  //     beta1_pow_out->numel(),
+  //     1,
+  //     errors::InvalidArgument("beta1 pow output size should be 1, but
+  //     received "
+  //                             "value is:%d.",
+  //                             beta1_pow_out->numel()));
 
-  PADDLE_ENFORCE_EQ(
-      beta2_pow_out->numel(),
-      1,
-      errors::InvalidArgument("beta2 pow output size should be 1, but received "
-                              "value is:%d.",
-                              beta2_pow_out->numel()));
+  // PADDLE_ENFORCE_EQ(
+  //     beta2_pow_out->numel(),
+  //     1,
+  //     errors::InvalidArgument("beta2 pow output size should be 1, but
+  //     received "
+  //                             "value is:%d.",
+  //                             beta2_pow_out->numel()));
 
-  const MPDType* master_in_data =
-      multi_precision ? master_param->data<MPDType>() : nullptr;
-  MPDType* master_out_data =
-      multi_precision ? dev_ctx.template Alloc<MPDType>(master_param_outs)
-                      : nullptr;
+  // const MPDType* master_in_data =
+  //     multi_precision ? master_param->data<MPDType>() : nullptr;
+  // MPDType* master_out_data =
+  //     multi_precision ? dev_ctx.template Alloc<MPDType>(master_param_outs)
+  //                     : nullptr;
   // template <typename T, typename TG, typename MT> DLL_EXPORT int
   // adamw_v2(Context* ctx, MT beta1, MT beta2, MT epsilon, MT coeff, MT
   // lr_ratio, const MT* beta1_pow, MT* beta1_pow_out, const MT* beta2_pow, MT*
@@ -147,130 +150,130 @@ void AdamwDenseKernelKL3(const Context& dev_ctx,
   // moment2_out, const MT* lr, const TG* grad, const T* param, T* param_out,
   // const MT* master_param, MT* master_param_out, int64_t n);
 
-  if (beta1_pow.place() == CPUPlace() && beta2_pow.place() == CPUPlace()) {
-    DenseTensor xpu_beta1_pow;
-    DenseTensor xpu_beta2_pow;
-    phi::Copy(dev_ctx, beta1_pow, dev_ctx.GetPlace(), false, &xpu_beta1_pow);
-    phi::Copy(dev_ctx, beta2_pow, dev_ctx.GetPlace(), false, &xpu_beta2_pow);
-    dev_ctx.Wait();
-    const MPDType* beta1_pow_ptr = xpu_beta1_pow.data<MPDType>();
-    const MPDType* beta2_pow_ptr = xpu_beta2_pow.data<MPDType>();
+  // if (beta1_pow.place() == CPUPlace() && beta2_pow.place() == CPUPlace()) {
+  //   DenseTensor xpu_beta1_pow;
+  //   DenseTensor xpu_beta2_pow;
+  //   phi::Copy(dev_ctx, beta1_pow, dev_ctx.GetPlace(), false, &xpu_beta1_pow);
+  //   phi::Copy(dev_ctx, beta2_pow, dev_ctx.GetPlace(), false, &xpu_beta2_pow);
+  //   dev_ctx.Wait();
+  //   const MPDType* beta1_pow_ptr = xpu_beta1_pow.data<MPDType>();
+  //   const MPDType* beta2_pow_ptr = xpu_beta2_pow.data<MPDType>();
 
-    if (grad_type == phi::DataType::FLOAT32) {
-      int r = xpu::adamw_v2<XPUType, float, MPDType>(
-          dev_ctx.x_context(),
-          beta1_,
-          beta2_,
-          epsilon_,
-          coeff_,
-          lr_ratio_,
-          beta1_pow_ptr,
-          nullptr,
-          beta2_pow_ptr,
-          nullptr,
-          moment1.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment1_out),
-          moment2.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment2_out),
-          learning_rate.data<MPDType>(),
-          grad.data<float>(),
-          reinterpret_cast<const XPUType*>(param.data<T>()),
-          reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
-          master_in_data,
-          master_out_data,
-          param.numel());
-      PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
-    } else {
-      int r = xpu::adamw_v2<XPUType, XPUType, MPDType>(
-          dev_ctx.x_context(),
-          beta1_,
-          beta2_,
-          epsilon_,
-          coeff_,
-          lr_ratio_,
-          beta1_pow_ptr,
-          nullptr,
-          beta2_pow_ptr,
-          nullptr,
-          moment1.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment1_out),
-          moment2.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment2_out),
-          learning_rate.data<MPDType>(),
-          reinterpret_cast<const XPUType*>(grad.data<T>()),
-          reinterpret_cast<const XPUType*>(param.data<T>()),
-          reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
-          master_in_data,
-          master_out_data,
-          param.numel());
-      PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
-    }
-    if (!use_global_beta_pow) {
-      // Cpu update
-      dev_ctx.template HostAlloc<MPDType>(beta1_pow_out)[0] =
-          beta1_ * beta1_pow.data<MPDType>()[0];
-      dev_ctx.template HostAlloc<MPDType>(beta2_pow_out)[0] =
-          beta2_ * beta2_pow.data<MPDType>()[0];
-    }
-  } else {
-    MPDType* beta1_pow_out_ptr = nullptr;
-    MPDType* beta2_pow_out_ptr = nullptr;
+  //   if (grad_type == phi::DataType::FLOAT32) {
+  //     int r = xpu::adamw_v2<XPUType, float, MPDType>(
+  //         dev_ctx.x_context(),
+  //         beta1_,
+  //         beta2_,
+  //         epsilon_,
+  //         coeff_,
+  //         lr_ratio_,
+  //         beta1_pow_ptr,
+  //         nullptr,
+  //         beta2_pow_ptr,
+  //         nullptr,
+  //         moment1.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment1_out),
+  //         moment2.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment2_out),
+  //         learning_rate.data<MPDType>(),
+  //         grad.data<float>(),
+  //         reinterpret_cast<const XPUType*>(param.data<T>()),
+  //         reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
+  //         master_in_data,
+  //         master_out_data,
+  //         param.numel());
+  //     PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
+  //   } else {
+  //     int r = xpu::adamw_v2<XPUType, XPUType, MPDType>(
+  //         dev_ctx.x_context(),
+  //         beta1_,
+  //         beta2_,
+  //         epsilon_,
+  //         coeff_,
+  //         lr_ratio_,
+  //         beta1_pow_ptr,
+  //         nullptr,
+  //         beta2_pow_ptr,
+  //         nullptr,
+  //         moment1.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment1_out),
+  //         moment2.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment2_out),
+  //         learning_rate.data<MPDType>(),
+  //         reinterpret_cast<const XPUType*>(grad.data<T>()),
+  //         reinterpret_cast<const XPUType*>(param.data<T>()),
+  //         reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
+  //         master_in_data,
+  //         master_out_data,
+  //         param.numel());
+  //     PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
+  //   }
+  //   if (!use_global_beta_pow) {
+  //     // Cpu update
+  //     dev_ctx.template HostAlloc<MPDType>(beta1_pow_out)[0] =
+  //         beta1_ * beta1_pow.data<MPDType>()[0];
+  //     dev_ctx.template HostAlloc<MPDType>(beta2_pow_out)[0] =
+  //         beta2_ * beta2_pow.data<MPDType>()[0];
+  //   }
+  // } else {
+  //   MPDType* beta1_pow_out_ptr = nullptr;
+  //   MPDType* beta2_pow_out_ptr = nullptr;
 
-    if (!use_global_beta_pow) {
-      beta1_pow_out_ptr = dev_ctx.template Alloc<MPDType>(beta1_pow_out);
-      beta2_pow_out_ptr = dev_ctx.template Alloc<MPDType>(beta2_pow_out);
-    }
+  //   if (!use_global_beta_pow) {
+  //     beta1_pow_out_ptr = dev_ctx.template Alloc<MPDType>(beta1_pow_out);
+  //     beta2_pow_out_ptr = dev_ctx.template Alloc<MPDType>(beta2_pow_out);
+  //   }
 
-    if (grad_type == phi::DataType::FLOAT32) {
-      int r = xpu::adamw_v2<XPUType, float, MPDType>(
-          dev_ctx.x_context(),
-          beta1_,
-          beta2_,
-          epsilon_,
-          coeff_,
-          lr_ratio_,
-          beta1_pow.data<MPDType>(),
-          beta1_pow_out_ptr,
-          beta2_pow.data<MPDType>(),
-          beta2_pow_out_ptr,
-          moment1.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment1_out),
-          moment2.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment2_out),
-          learning_rate.data<MPDType>(),
-          grad.data<float>(),
-          reinterpret_cast<const XPUType*>(param.data<T>()),
-          reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
-          master_in_data,
-          master_out_data,
-          param.numel());
-      PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
-    } else {
-      int r = xpu::adamw_v2<XPUType, XPUType, MPDType>(
-          dev_ctx.x_context(),
-          beta1_,
-          beta2_,
-          epsilon_,
-          coeff_,
-          lr_ratio_,
-          beta1_pow.data<MPDType>(),
-          beta1_pow_out_ptr,
-          beta2_pow.data<MPDType>(),
-          beta2_pow_out_ptr,
-          moment1.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment1_out),
-          moment2.data<MPDType>(),
-          dev_ctx.template Alloc<MPDType>(moment2_out),
-          learning_rate.data<MPDType>(),
-          reinterpret_cast<const XPUType*>(grad.data<T>()),
-          reinterpret_cast<const XPUType*>(param.data<T>()),
-          reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
-          master_in_data,
-          master_out_data,
-          param.numel());
-      PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
-    }
-  }
+  //   if (grad_type == phi::DataType::FLOAT32) {
+  //     int r = xpu::adamw_v2<XPUType, float, MPDType>(
+  //         dev_ctx.x_context(),
+  //         beta1_,
+  //         beta2_,
+  //         epsilon_,
+  //         coeff_,
+  //         lr_ratio_,
+  //         beta1_pow.data<MPDType>(),
+  //         beta1_pow_out_ptr,
+  //         beta2_pow.data<MPDType>(),
+  //         beta2_pow_out_ptr,
+  //         moment1.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment1_out),
+  //         moment2.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment2_out),
+  //         learning_rate.data<MPDType>(),
+  //         grad.data<float>(),
+  //         reinterpret_cast<const XPUType*>(param.data<T>()),
+  //         reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
+  //         master_in_data,
+  //         master_out_data,
+  //         param.numel());
+  //     PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
+  //   } else {
+  //     int r = xpu::adamw_v2<XPUType, XPUType, MPDType>(
+  //         dev_ctx.x_context(),
+  //         beta1_,
+  //         beta2_,
+  //         epsilon_,
+  //         coeff_,
+  //         lr_ratio_,
+  //         beta1_pow.data<MPDType>(),
+  //         beta1_pow_out_ptr,
+  //         beta2_pow.data<MPDType>(),
+  //         beta2_pow_out_ptr,
+  //         moment1.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment1_out),
+  //         moment2.data<MPDType>(),
+  //         dev_ctx.template Alloc<MPDType>(moment2_out),
+  //         learning_rate.data<MPDType>(),
+  //         reinterpret_cast<const XPUType*>(grad.data<T>()),
+  //         reinterpret_cast<const XPUType*>(param.data<T>()),
+  //         reinterpret_cast<XPUType*>(dev_ctx.template Alloc<T>(param_out)),
+  //         master_in_data,
+  //         master_out_data,
+  //         param.numel());
+  //     PADDLE_ENFORCE_XDNN_SUCCESS(r, "adamw");
+  //   }
+  // }
   return;
 }
 

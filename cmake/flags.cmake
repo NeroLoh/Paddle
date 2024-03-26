@@ -150,6 +150,8 @@ if(NOT WIN32)
       -Werror
       -Wall
       -Wextra
+      -Wno-unused-result
+      -Wno-sign-compare
       -Wno-unused-parameter
       -Wno-unused-function
       -Wno-error=array-bounds #Warning in Eigen, gcc 12.2

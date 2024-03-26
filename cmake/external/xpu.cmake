@@ -29,7 +29,7 @@ if(NOT DEFINED XPU_BASE_DATE)
   set(XPU_BASE_DATE "20240104")
 endif()
 if(NOT DEFINED XPU_XHPC_BASE_DATE)
-  set(XPU_XHPC_BASE_DATE "20240226")
+  set(XPU_XHPC_BASE_DATE "20240318")
 endif()
 set(XPU_XCCL_BASE_VERSION "1.1.8.1")
 if(NOT DEFINED XPU_XFT_BASE_VERSION)
@@ -229,7 +229,7 @@ if(WITH_XPTI)
 endif()
 
 if(WITH_XPU_XHPC)
-  target_link_libraries(xpulib ${XPU_API_LIB} ${XPU_RT_LIB} ${XPU_XBLAS_LIB}
+  target_link_libraries(xpulib ${XPU_RT_LIB} ${XPU_XBLAS_LIB} ${XPU_API_LIB}
                         ${XPU_XFA_LIB})
 endif()
 
