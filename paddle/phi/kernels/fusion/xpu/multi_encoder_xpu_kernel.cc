@@ -74,15 +74,21 @@ void MultiEncoderXPUKernel(
                                     : max_seq_len.get_ptr()->data<int>();
   int batch_size = x.dims()[0];
   int seq_len = x.dims()[1];
+  int head_dim = x.dims()[2];
   DDim out_dims;
   if (seq_lod_data) {
     batch_size = seq_lod.get_ptr()->numel() - 1;
     seq_len = max_seq_len_data[0];
+    if (x.dims().size() == 2) {
+      head_dim = x.dims()[1];
+    }
   }
-  out_dims = {batch_size, seq_len, x.dims()[2]};
+  out_dims = {batch_size, seq_len, head_dim};
   if (slice_idx != -1) {
-    out_dims = {batch_size, x.dims()[2]};
+    out_dims = {batch_size, head_dim};
   }
+  std::cout << "batch_size:" << batch_size << " seq_len:" << seq_len
+            << " head_dim:" << x.dims()[2] << std::endl;
   out->Resize(out_dims);
   out_fp16->Resize(out_dims);
   // XPU2 only support fp16 input/output.

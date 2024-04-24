@@ -3828,6 +3828,53 @@ void SinePosXPUInferMeta(const MetaTensor& x,
   out->set_dtype(x.dtype());
 }
 
+void MaskAdaptiveXPUInferMeta(const MetaTensor& Mask,
+                              MetaTensor* Length,
+                              MetaTensor* SeqLod,
+                              MetaTensor* PadSeqLen) {
+  auto mask_dims = Mask.dims();
+  auto mask_dims_size = mask_dims.size();
+  PADDLE_ENFORCE_EQ(
+      mask_dims_size,
+      3,
+      phi::errors::InvalidArgument(
+          "mask_dims_size should be 3, but received mask_dims_size is %d",
+          mask_dims_size));
+  Length->set_dims({mask_dims[0]});
+  SeqLod->set_dims({mask_dims[0] + 1});
+  PadSeqLen->set_dims({1});
+  Length->set_dtype(phi::DataType::INT64);
+  SeqLod->set_dtype(phi::DataType::INT32);
+  PadSeqLen->set_dtype(phi::DataType::INT32);
+}
+
+void SequenceUnpadXPUInferMeta(const MetaTensor& X,
+                               const MetaTensor& Length,
+                               MetaTensor* Out) {
+  auto x_dims = X.dims();
+  auto len_dims = Length.dims();
+  PADDLE_ENFORCE_GE(
+      x_dims.size(),
+      2,
+      phi::errors::InvalidArgument(
+          "Rank of X can't be less than 2, but received x_dims.size() is %d",
+          x_dims.size()));
+  PADDLE_ENFORCE_EQ(
+      len_dims.size(),
+      1,
+      phi::errors::InvalidArgument(
+          "Rank of Length should be 1, but received en_dims.size() is %d",
+          len_dims.size()));
+  PADDLE_ENFORCE_EQ(x_dims[0],
+                    len_dims[0],
+                    phi::errors::InvalidArgument(
+                        "X and Length should have the same 1st dim, but "
+                        "received X.dims[0] is %d, Length.dims[0] is %d",
+                        x_dims[0],
+                        len_dims[0]));
+  Out->set_dtype(X.dtype());
+}
+
 void MultiGruInferMeta(
     const MetaTensor& x,
     const std::vector<const MetaTensor*>& weight_x,

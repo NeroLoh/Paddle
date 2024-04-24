@@ -230,7 +230,11 @@ void AnalysisConfig::SetXpuConfig(const XpuConfig &config) {
           "l3_autotune_size(%zu) should be less than or equal to l3_size(%zu).",
           config.l3_autotune_size,
           config.l3_size));
+  std::cout << "config.l3_autotune_size:" << config.l3_autotune_size
+            << std::endl;
   xpu_config_ = config;
+  std::cout << "xpu_config_.l3_autotune_size:" << xpu_config_.l3_autotune_size
+            << std::endl;
   Update();
 }
 
