@@ -13,7 +13,10 @@
 # limitations under the License.
 
 from .blha_get_max_len import blha_get_max_len
-from .block_multihead_attention import block_multihead_attention
+from .block_multihead_attention import (
+    block_multihead_attention,
+    block_multihead_attention_xpu,
+)
 from .fused_dot_product_attention import (
     fused_dot_product_attention,  # noqa: F401
 )
@@ -57,5 +60,6 @@ __all__ = [
     "masked_multihead_attention",
     "blha_get_max_len",
     "block_multihead_attention",
+    "block_multihead_attention_xpu",
     "swiglu",
 ]
